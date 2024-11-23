@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Number Generator with Voice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    input, button {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    input {
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #speedControl {
+      width: 100%;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin: 10px 0;
+    }
+    #speedValue {
+      font-weight: bold;
+    }
+    #result {
+      font-size: 48px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #ffcc00;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 14px;
+      }
+      #result {
+        font-size: 36px;
+      }
+      input, button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎲 Random Number Generator 🎲</h2>
+    <input type="number" id="startNumber" placeholder="Enter Start Number" />
+    <input type="number" id="endNumber" placeholder="Enter End Number" />
+    <label>
+      Speed: <span id="speedValue">500</span> ms
+    </label>
+    <input type="range" id="speedControl" min="100" max="1000" value="500" step="50">
+    <button id="generateBtn">Start Randomizing</button>
+    <div id="result">Your random number will appear here!</div>
+  </div>
+
+  <script>
+    const startNumber = document.getElementById("startNumber");
+    const endNumber = document.getElementById("endNumber");
+    const generateBtn = document.getElementById("generateBtn");
+    const speedControl = document.getElementById("speedControl");
+    const speedValue = document.getElementById("speedValue");
+    const result = document.getElementById("result");
+
+    let intervalId = null;
+
+    speedControl.addEventListener("input", () => {
+      speedValue.textContent = speedControl.value;
+      if (intervalId) {
+        clearInterval(intervalId);
+        startRandomizing();
+      }
+    });
+
+    generateBtn.addEventListener("click", () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+        generateBtn.textContent = "Start Randomizing";
+      } else {
+        startRandomizing();
+        generateBtn.textContent = "Stop Randomizing";
+      }
+    });
+
+    function startRandomizing() {
+      const start = parseInt(startNumber.value, 10);
+      const end = parseInt(endNumber.value, 10);
+
+      if (isNaN(start) || isNaN(end) || start >= end) {
+        result.textContent = "Please enter valid numbers!";
+        return;
+      }
+
+      intervalId = setInterval(() => {
+        const random = Math.floor(Math.random() * (end - start + 1)) + start;
+        result.textContent = random;
+        speakNumber(random); // Đọc số bằng tiếng Việt
+      }, parseInt(speedControl.value, 10));
+    }
+
+    function speakNumber(number) {
+      const utterance = new SpeechSynthesisUtterance(number.toString());
+      utterance.lang = "vi-VN"; // Thiết lập ngôn ngữ tiếng Việt
+      window.speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
