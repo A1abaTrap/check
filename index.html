@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Number & Number Reader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-weight: bold;
+      color: #fff;
+      transition: border-color 0.3s;
+    }
+    .tab.active {
+      border-color: #ffcc00;
+    }
+    .container {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+    }
+    .container.active {
+      display: block;
+    }
+    input, button {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    input {
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    label {
+      font-size: 14px;
+      display: block;
+      margin: 10px 0;
+    }
+    #speedValue {
+      font-weight: bold;
+    }
+    #result {
+      font-size: 48px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #ffcc00;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 14px;
+      }
+      #result {
+        font-size: 36px;
+      }
+      input, button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <div class="tab active" data-tab="random-tab">Random Number</div>
+    <div class="tab" data-tab="reader-tab">Number Reader</div>
+  </div>
+
+  <!-- Tab Random Number -->
+  <div class="container active" id="random-tab">
+    <h2>🎲 Random Number Generator 🎲</h2>
+    <input type="number" id="startNumber" placeholder="Enter Start Number" />
+    <input type="number" id="endNumber" placeholder="Enter End Number" />
+    <label>
+      Speed: <span id="randomSpeedValue">500</span> ms
+    </label>
+    <input type="range" id="randomSpeedControl" min="100" max="1000" value="500" step="50">
+    <button id="generateBtn">Start Randomizing</button>
+    <div id="result">Your random number will appear here!</div>
+  </div>
+
+  <!-- Tab Number Reader -->
+  <div class="container" id="reader-tab">
+    <h2>🔊 Number Reader 🔊</h2>
+    <input type="text" id="numberInput" placeholder="Enter or paste a number here" />
+    <label>
+      Speed: <span id="readerSpeedValue">1</span> (normal)
+    </label>
+    <input type="range" id="readerSpeedControl" min="0.5" max="2" value="1" step="0.1">
+    <button id="readNumberBtn">Read Number</button>
+  </div>
+
+  <script>
+    // Tab functionality
+    const tabs = document.querySelectorAll('.tab');
+    const containers = document.querySelectorAll('.container');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        containers.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Random Number Generator
+    const startNumber = document.getElementById("startNumber");
+    const endNumber = document.getElementById("endNumber");
+    const generateBtn = document.getElementById("generateBtn");
+    const randomSpeedControl = document.getElementById("randomSpeedControl");
+    const randomSpeedValue = document.getElementById("randomSpeedValue");
+    const result = document.getElementById("result");
+
+    let intervalId = null;
+
+    randomSpeedControl.addEventListener("input", () => {
+      randomSpeedValue.textContent = randomSpeedControl.value;
+      if (intervalId) {
+        clearInterval(intervalId);
+        startRandomizing();
+      }
+    });
+
+    generateBtn.addEventListener("click", () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+        generateBtn.textContent = "Start Randomizing";
+      } else {
+        startRandomizing();
+        generateBtn.textContent = "Stop Randomizing";
+      }
+    });
+
+    function startRandomizing() {
+      const start = parseInt(startNumber.value, 10);
+      const end = parseInt(endNumber.value, 10);
+
+      if (isNaN(start) || isNaN(end) || start >= end) {
+        result.textContent = "Please enter valid numbers!";
+        return;
+      }
+
+      intervalId = setInterval(() => {
+        const random = Math.floor(Math.random() * (end - start + 1)) + start;
+        result.textContent = random;
+        speakNumber(random);
+      }, parseInt(randomSpeedControl.value, 10));
+    }
+
+    // Number Reader
+    const numberInput = document.getElementById("numberInput");
+    const readNumberBtn = document.getElementById("readNumberBtn");
+    const readerSpeedControl = document.getElementById("readerSpeedControl");
+    const readerSpeedValue = document.getElementById("readerSpeedValue");
+
+    readerSpeedControl.addEventListener("input", () => {
+      readerSpeedValue.textContent = readerSpeedControl.value;
+    });
+
+    readNumberBtn.addEventListener("click", () => {
+      const number = numberInput.value.trim();
+      if (!number) {
+        alert("Please enter a number to read!");
+        return;
+      }
+      speakNumber(number, parseFloat(readerSpeedControl.value));
+    });
+
+    // Text-to-Speech
+    function speakNumber(number, speed = 1) {
+      const utterance = new SpeechSynthesisUtterance(number.toString());
+      utterance.lang = "vi-VN"; // Vietnamese
+      utterance.rate = speed; // Set speed
+      window.speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>
