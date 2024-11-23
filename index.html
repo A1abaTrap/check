@@ -135,10 +135,11 @@
     }
 
     function speakNumber(number) {
-      const utterance = new SpeechSynthesisUtterance(number.toString());
-      utterance.lang = "vi-VN"; // Thiết lập ngôn ngữ tiếng Việt
-      window.speechSynthesis.speak(utterance);
-    }
+  const utterance = new SpeechSynthesisUtterance(number.toString());
+  utterance.lang = "vi-VN"; // Thiết lập ngôn ngữ tiếng Việt
+  utterance.rate = speedControl.value / 500; // Điều chỉnh tốc độ giọng đọc (giá trị 1 là bình thường)
+  window.speechSynthesis.speak(utterance);
+}
   </script>
 </body>
 </html>
