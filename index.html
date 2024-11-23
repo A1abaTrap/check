@@ -204,7 +204,7 @@
     // Text-to-Speech
     function speakNumber(number, speed = 1) {
       const utterance = new SpeechSynthesisUtterance(number.toString());
-      utterance.lang = "vi-VN"; // Vietnamese
+      utterance.lang = "th-THA"; // Vietnamese
       utterance.rate = speed; // Set speed
       window.speechSynthesis.speak(utterance);
     }
