@@ -281,15 +281,22 @@
       stopBtn.disabled = false;
 
       updateUI();
-      readInterval = setInterval(() => {
-        if (currentIndex < numbers.length) {
-          speakNumber(numbers[currentIndex], parseFloat(speedControl.value));
+      readNextNumber();
+    }
+
+    function readNextNumber() {
+      if (currentIndex < numbers.length) {
+        const currentNumber = numbers[currentIndex];
+        speakNumber(currentNumber, parseFloat(speedControl.value)).then(() => {
           currentIndex++;
           updateUI();
-        } else {
-          stopReading();
-        }
-      }, 1000 / parseFloat(speedControl.value));
+          if (currentIndex < numbers.length) {
+            readNextNumber();  // Read the next number only after the current one finishes
+          } else {
+            stopReading();
+          }
+        });
+      }
     }
 
     function pauseReading() {
@@ -301,21 +308,12 @@
     function resumeReading() {
       isPaused = false;
       startPauseBtn.textContent = "Pause";
-      readInterval = setInterval(() => {
-        if (currentIndex < numbers.length) {
-          speakNumber(numbers[currentIndex], parseFloat(speedControl.value));
-          currentIndex++;
-          updateUI();
-        } else {
-          stopReading();
-        }
-      }, 1000 / parseFloat(speedControl.value));
+      readNextNumber();  // Resume reading the next number
     }
 
     function stopReading() {
       isReading = false;
       isPaused = false;
-      clearInterval(readInterval);
       currentIndex = 0;
       numbers = [];
       updateUI();
@@ -328,7 +326,12 @@
       return new Promise(resolve => {
         const utterance = new SpeechSynthesisUtterance(number.toString());
         utterance.rate = speed;
-        utterance.onend = resolve; // Ensures the reading finishes before updating
+
+        // Khi giọng đọc kết thúc, chuyển sang số tiếp theo
+        utterance.onend = () => {
+          resolve();  // Giọng đọc đã hoàn thành, tiếp tục
+        };
+
         window.speechSynthesis.speak(utterance);
       });
     }
