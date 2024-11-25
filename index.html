@@ -325,9 +325,12 @@
     }
 
     function speakNumber(number, speed) {
-      const utterance = new SpeechSynthesisUtterance(number.toString());
-      utterance.rate = speed;
-      window.speechSynthesis.speak(utterance);
+      return new Promise(resolve => {
+        const utterance = new SpeechSynthesisUtterance(number.toString());
+        utterance.rate = speed;
+        utterance.onend = resolve; // Ensures the reading finishes before updating
+        window.speechSynthesis.speak(utterance);
+      });
     }
   </script>
 </body>
