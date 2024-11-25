@@ -35,6 +35,12 @@
     button:hover {
       background: #0056b3;
     }
+    button.stop {
+      background: #dc3545;
+    }
+    button.pause {
+      background: #ffc107;
+    }
     .reader {
       display: flex;
       justify-content: center;
@@ -85,7 +91,8 @@
       <input type="range" id="speedControl" min="0.5" max="2" step="0.1" value="1">
     </div>
     <div class="buttons">
-      <button id="startPauseBtn">Start</button>
+      <button id="startBtn">Start</button>
+      <button id="pauseBtn" disabled>Pause</button>
       <button id="stopBtn" disabled>Stop</button>
     </div>
     <div class="reader">
@@ -97,7 +104,8 @@
 
   <script>
     const numberInput = document.getElementById("numberInput");
-    const startPauseBtn = document.getElementById("startPauseBtn");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
     const stopBtn = document.getElementById("stopBtn");
     const speedControl = document.getElementById("speedControl");
     const speedValue = document.getElementById("speedValue");
@@ -107,16 +115,14 @@
 
     let numbers = [];
     let currentIndex = 0;
-    let isReading = false; // Correctly declare isReading
-    let isPaused = false;  // Correctly declare isPaused
-    let currentUtterance = null;  
-    let readPromise = Promise.resolve();  
+    let isReading = false;
+    let readInterval;
 
     speedControl.addEventListener("input", () => {
       speedValue.textContent = speedControl.value;
     });
 
-    startPauseBtn.addEventListener("click", () => {
+    startBtn.addEventListener("click", () => {
       if (!isReading) {
         if (numbers.length === 0) {
           const input = numberInput.value.trim();
@@ -127,13 +133,10 @@
           numbers = input.split(",").map(num => num.trim());
         }
         startReading();
-      } else if (isPaused) {
-        resumeReading();
-      } else {
-        pauseReading();
       }
     });
 
+    pauseBtn.addEventListener("click", pauseReading);
     stopBtn.addEventListener("click", stopReading);
 
     function updateUI() {
@@ -148,67 +151,47 @@
 
     function startReading() {
       isReading = true;
-      isPaused = false;
-      startPauseBtn.textContent = "Pause";
+      startBtn.textContent = "Resume";
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
       stopBtn.disabled = false;
 
       updateUI();
-      readNextNumber();
-    }
-
-    function readNextNumber() {
-      if (currentIndex < numbers.length && !isPaused) {
-        const currentNumber = numbers[currentIndex];
-        readPromise = readPromise.then(() => speakNumber(currentNumber, parseFloat(speedControl.value)));
-      }
+      readInterval = setInterval(() => {
+        if (currentIndex < numbers.length) {
+          speakNumber(numbers[currentIndex], parseFloat(speedControl.value));
+          currentIndex++;
+          updateUI();
+        } else {
+          stopReading();
+        }
+      }, 1000 / parseFloat(speedControl.value));
     }
 
     function pauseReading() {
-      isPaused = true;
-      startPauseBtn.textContent = "Resume";
-      if (currentUtterance) {
-        currentUtterance.onend = null;  
-        window.speechSynthesis.pause(); 
-      }
-    }
-
-    function resumeReading() {
-      isPaused = false;
-      startPauseBtn.textContent = "Pause";
-      window.speechSynthesis.resume(); 
-      readNextNumber();  
+      isReading = false;
+      clearInterval(readInterval);
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
     }
 
     function stopReading() {
       isReading = false;
-      isPaused = false;
+      clearInterval(readInterval);
       currentIndex = 0;
       numbers = [];
       updateUI();
 
-      window.speechSynthesis.cancel();
-      startPauseBtn.textContent = "Start";
+      startBtn.textContent = "Start";
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
       stopBtn.disabled = true;
     }
 
     function speakNumber(number, speed) {
-      return new Promise(resolve => {
-        currentUtterance = new SpeechSynthesisUtterance(number.toString());
-        currentUtterance.rate = speed;
-
-        currentUtterance.onend = () => {
-          currentIndex++;
-          updateUI();
-          resolve();  
-          if (currentIndex < numbers.length && !isPaused) {
-            readNextNumber();  
-          } else {
-            stopReading();
-          }
-        };
-
-        window.speechSynthesis.speak(currentUtterance);
-      });
+      const utterance = new SpeechSynthesisUtterance(number.toString());
+      utterance.rate = speed;
+      window.speechSynthesis.speak(utterance);
     }
   </script>
 </body>
