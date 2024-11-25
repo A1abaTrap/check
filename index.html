@@ -38,9 +38,6 @@
     button.stop {
       background: #dc3545;
     }
-    button.pause {
-      background: #ffc107;
-    }
     .reader {
       display: flex;
       justify-content: center;
@@ -91,8 +88,7 @@
       <input type="range" id="speedControl" min="0.5" max="2" step="0.1" value="1">
     </div>
     <div class="buttons">
-      <button id="startBtn">Start</button>
-      <button id="pauseBtn" disabled>Pause</button>
+      <button id="startPauseBtn">Start</button>
       <button id="stopBtn" disabled>Stop</button>
     </div>
     <div class="reader">
@@ -104,8 +100,7 @@
 
   <script>
     const numberInput = document.getElementById("numberInput");
-    const startBtn = document.getElementById("startBtn");
-    const pauseBtn = document.getElementById("pauseBtn");
+    const startPauseBtn = document.getElementById("startPauseBtn");
     const stopBtn = document.getElementById("stopBtn");
     const speedControl = document.getElementById("speedControl");
     const speedValue = document.getElementById("speedValue");
@@ -116,13 +111,14 @@
     let numbers = [];
     let currentIndex = 0;
     let isReading = false;
+    let isPaused = false;
     let readInterval;
 
     speedControl.addEventListener("input", () => {
       speedValue.textContent = speedControl.value;
     });
 
-    startBtn.addEventListener("click", () => {
+    startPauseBtn.addEventListener("click", () => {
       if (!isReading) {
         if (numbers.length === 0) {
           const input = numberInput.value.trim();
@@ -133,10 +129,13 @@
           numbers = input.split(",").map(num => num.trim());
         }
         startReading();
+      } else if (isPaused) {
+        resumeReading();
+      } else {
+        pauseReading();
       }
     });
 
-    pauseBtn.addEventListener("click", pauseReading);
     stopBtn.addEventListener("click", stopReading);
 
     function updateUI() {
@@ -151,9 +150,8 @@
 
     function startReading() {
       isReading = true;
-      startBtn.textContent = "Resume";
-      startBtn.disabled = true;
-      pauseBtn.disabled = false;
+      isPaused = false;
+      startPauseBtn.textContent = "Pause";
       stopBtn.disabled = false;
 
       updateUI();
@@ -169,22 +167,34 @@
     }
 
     function pauseReading() {
-      isReading = false;
+      isPaused = true;
       clearInterval(readInterval);
-      startBtn.disabled = false;
-      pauseBtn.disabled = true;
+      startPauseBtn.textContent = "Resume";
+    }
+
+    function resumeReading() {
+      isPaused = false;
+      startPauseBtn.textContent = "Pause";
+      readInterval = setInterval(() => {
+        if (currentIndex < numbers.length) {
+          speakNumber(numbers[currentIndex], parseFloat(speedControl.value));
+          currentIndex++;
+          updateUI();
+        } else {
+          stopReading();
+        }
+      }, 1000 / parseFloat(speedControl.value));
     }
 
     function stopReading() {
       isReading = false;
+      isPaused = false;
       clearInterval(readInterval);
       currentIndex = 0;
       numbers = [];
       updateUI();
 
-      startBtn.textContent = "Start";
-      startBtn.disabled = false;
-      pauseBtn.disabled = true;
+      startPauseBtn.textContent = "Start";
       stopBtn.disabled = true;
     }
 
