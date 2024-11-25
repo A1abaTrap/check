@@ -35,9 +35,6 @@
     button:hover {
       background: #0056b3;
     }
-    button.stop {
-      background: #dc3545;
-    }
     .reader {
       display: flex;
       justify-content: center;
@@ -99,7 +96,6 @@
   </div>
 
   <script>
-    // Number Reader
     const numberInput = document.getElementById("numberInput");
     const startPauseBtn = document.getElementById("startPauseBtn");
     const stopBtn = document.getElementById("stopBtn");
@@ -111,10 +107,9 @@
 
     let numbers = [];
     let currentIndex = 0;
-    let isReading = false;
-    let isPaused = false;
-    let currentUtterance = null;  // Track the current speech synthesis utterance
-    let readPromise = Promise.resolve();  // Control the flow of reading
+    let isReading = false let isPaused = false;
+    let currentUtterance = null;  
+    let readPromise = Promise.resolve();  
 
     speedControl.addEventListener("input", () => {
       speedValue.textContent = speedControl.value;
@@ -171,15 +166,16 @@
       isPaused = true;
       startPauseBtn.textContent = "Resume";
       if (currentUtterance) {
-        currentUtterance.onend = null;  // Remove the onend event to stop the next number
-        window.speechSynthesis.pause(); // Pause the current speech
+        currentUtterance.onend = null;  
+        window.speechSynthesis.pause(); 
       }
     }
 
     function resumeReading() {
       isPaused = false;
       startPauseBtn.textContent = "Pause";
-      readNextNumber();  // Continue reading from where it was paused
+      window.speechSynthesis.resume(); 
+      readNextNumber();  
     }
 
     function stopReading() {
@@ -189,7 +185,6 @@
       numbers = [];
       updateUI();
 
-      // Stop speech synthesis and clear interval
       window.speechSynthesis.cancel();
       startPauseBtn.textContent = "Start";
       stopBtn.disabled = true;
@@ -200,13 +195,12 @@
         currentUtterance = new SpeechSynthesisUtterance(number.toString());
         currentUtterance.rate = speed;
 
-        // Khi giọng đọc kết thúc, chuyển sang số tiếp theo
         currentUtterance.onend = () => {
           currentIndex++;
           updateUI();
-          resolve();  // Giọng đọc đã hoàn thành, tiếp tục
+          resolve();  
           if (currentIndex < numbers.length && !isPaused) {
-            readNextNumber();  // Read the next number after the current one finishes
+            readNextNumber();  
           } else {
             stopReading();
           }
