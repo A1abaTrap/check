@@ -69,12 +69,12 @@
       display: block;
       margin: 10px 0;
     }
-    .reader {
+    .reader ,#result {
       display: flex;
       justify-content: space-around;
       margin-top: 20px;
     }
-    .reader .box {
+    .reader .box ,#result {
       flex: 1;
       padding: 10px;
       background: rgba(255, 255, 255, 0.2);
@@ -84,17 +84,9 @@
       font-weight: bold;
       color: #ffcc00;
     }
-    .reader .box.current {
+    .reader .box.current ,#result {
       background: rgba(255, 255, 255, 0.5);
       font-size: 36px;
-    }
-    @media (max-width: 600px) {
-      .reader .box {
-        font-size: 18px;
-      }
-      .reader .box.current {
-        font-size: 28px;
-      }
     }
   </style>
 </head>
@@ -114,7 +106,7 @@
     </label>
     <input type="range" id="randomSpeedControl" min="100" max="1000" value="500" step="50">
     <label>
-      <input type="checkbox" id="toggleVoice" checked> Enable Voice
+      <input type="checkbox" id="toggleVoice"> Enable Voice
     </label>
     <button id="generateBtn">Start Randomizing</button>
     <div id="result">Your random number will appear here!</div>
@@ -141,118 +133,196 @@
 
   <script>
     // Tab functionality
-    const tabs = document.querySelectorAll('.tab');
-    const containers = document.querySelectorAll('.container');
+const tabs = document.querySelectorAll('.tab');
+const containers = document.querySelectorAll('.container');
 
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        containers.forEach(c => c.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.tab).classList.add('active');
-      });
-    });
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    containers.forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
 
-    // Random Number Generator Logic
-    const startNumber = document.getElementById("startNumber");
-    const endNumber = document.getElementById("endNumber");
-    const generateBtn = document.getElementById("generateBtn");
-    const randomSpeedControl = document.getElementById("randomSpeedControl");
-    const randomSpeedValue = document.getElementById("randomSpeedValue");
-    const toggleVoice = document.getElementById("toggleVoice");
-    const result = document.getElementById("result");
+// Random Number Generator Logic
+const startNumber = document.getElementById("startNumber");
+const endNumber = document.getElementById("endNumber");
+const generateBtn = document.getElementById("generateBtn");
+const randomSpeedControl = document.getElementById("randomSpeedControl");
+const randomSpeedValue = document.getElementById("randomSpeedValue");
+const toggleVoice = document.getElementById("toggleVoice");
+const result = document.getElementById("result");
 
-    let randomIntervalId = null;
+let randomIntervalId = null;
+let randomIsSpeaking = false;
 
-    randomSpeedControl.addEventListener("input", () => {
-      randomSpeedValue.textContent = randomSpeedControl.value;
-    });
+randomSpeedControl.addEventListener("input", () => {
+  randomSpeedValue.textContent = randomSpeedControl.value;
+  if (randomIntervalId) {
+    clearInterval(randomIntervalId);
+    startRandomizing();
+  }
+});
 
-    generateBtn.addEventListener("click", () => {
-      if (randomIntervalId) {
-        clearInterval(randomIntervalId);
-        randomIntervalId = null;
-        generateBtn.textContent = "Start Randomizing";
-      } else {
-        const start = parseInt(startNumber.value, 10);
-        const end = parseInt(endNumber.value, 10);
+generateBtn.addEventListener("click", () => {
+  if (randomIntervalId) {
+    clearInterval(randomIntervalId);
+    randomIntervalId = null;
+    generateBtn.textContent = "Start Randomizing";
+  } else {
+    startRandomizing();
+    generateBtn.textContent = "Stop Randomizing";
+  }
+});
 
-        if (isNaN(start) || isNaN(end) || start >= end) {
-          result.textContent = "Please enter valid numbers!";
-          return;
-        }
+function startRandomizing() {
+  const start = parseInt(startNumber.value, 10);
+  const end = parseInt(endNumber.value, 10);
 
-        randomIntervalId = setInterval(() => {
-          const random = Math.floor(Math.random() * (end - start + 1)) + start;
-          result.textContent = random;
-        }, parseInt(randomSpeedControl.value, 10));
-        generateBtn.textContent = "Stop Randomizing";
+  if (isNaN(start) || isNaN(end) || start >= end) {
+    result.textContent = "Please enter valid numbers!";
+    return;
+  }
+
+  randomIntervalId = setInterval(async () => {
+    if (!randomIsSpeaking) {
+      const random = Math.floor(Math.random() * (end - start + 1)) + start;
+      result.textContent = random;
+
+      if (toggleVoice.checked) {
+        await speakNumber(random, 1000 / parseInt(randomSpeedControl.value));
       }
-    });
+    }
+  }, parseInt(randomSpeedControl.value, 10));
+}
 
-    // Number Reader Logic
-    const numberInput = document.getElementById("numberInput");
-    const speedControl = document.getElementById("speedControl");
-    const speedValue = document.getElementById("speedValue");
-    const startPauseBtn = document.getElementById("startPauseBtn");
-    const stopBtn = document.getElementById("stopBtn");
-    const previousNumber = document.getElementById("previousNumber");
-    const currentNumber = document.getElementById("currentNumber");
-    const nextNumber = document.getElementById("nextNumber");
+// Number Reader Logic
+const numberInput = document.getElementById("numberInput");
+const startPauseBtn = document.getElementById("startPauseBtn");
+const stopBtn = document.getElementById("stopBtn");
+const speedControl = document.getElementById("speedControl");
+const speedValue = document.getElementById("speedValue");
+const previousNumberDiv = document.getElementById("previousNumber");
+const currentNumberDiv = document.getElementById("currentNumber");
+const nextNumberDiv = document.getElementById("nextNumber");
 
-    let readerIntervalId = null;
-    let numbers = [];
-    let currentIndex = 0;
+let numbers = [];
+let currentIndex = 0;
+let isReading = false;
+let isPaused = false;
 
-    speedControl.addEventListener("input", () => {
-      speedValue.textContent = speedControl.value;
-    });
+speedControl.addEventListener("input", () => {
+  speedValue.textContent = speedControl.value;
+});
 
-    startPauseBtn.addEventListener("click", () => {
-      if (readerIntervalId) {
-        clearInterval(readerIntervalId);
-        readerIntervalId = null;
-        startPauseBtn.textContent = "Resume";
-        stopBtn.disabled = false;
-      } else {
-        const input = numberInput.value.trim();
-        if (!input) {
-          alert("Please enter numbers separated by commas!");
-          return;
-        }
-
-        if (numbers.length === 0) {
-          numbers = input.split(",").map(n => n.trim());
-          currentIndex = 0;
-        }
-
-        if (currentIndex >= numbers.length) currentIndex = 0;
-
-        readerIntervalId = setInterval(() => {
-          previousNumber.textContent = numbers[currentIndex - 1] || "";
-          currentNumber.textContent = numbers[currentIndex];
-          nextNumber.textContent = numbers[currentIndex + 1] || "";
-
-          currentIndex++;
-          if (currentIndex >= numbers.length) currentIndex = 0;
-        }, 1000 / parseFloat(speedControl.value));
-
-        startPauseBtn.textContent = "Pause";
-        stopBtn.disabled = false;
+startPauseBtn.addEventListener("click", () => {
+  if (!isReading) {
+    if (numbers.length === 0) {
+      const input = numberInput.value.trim();
+      if (!input) {
+        alert("Please enter numbers!");
+        return;
       }
-    });
+      numbers = input.split(",").map(num => num.trim());
+    }
+    startReading();
+  } else if (isPaused) {
+    resumeReading();
+  } else {
+    pauseReading();
+  }
+});
 
-    stopBtn.addEventListener("click", () => {
-      clearInterval(readerIntervalId);
-      readerIntervalId = null;
-      numbers = [];
-      currentIndex = 0;
-      previousNumber.textContent = "";
-      currentNumber.textContent = "";
-      nextNumber.textContent = "";
-      startPauseBtn.textContent = "Start";
-      stopBtn.disabled = true;
-    });
+stopBtn.addEventListener("click", stopReading);
+
+function updateUI() {
+  const previousNumber = numbers[currentIndex - 1] || "";
+  const currentNumber = numbers[currentIndex] || "";
+  const nextNumber = numbers[currentIndex + 1] || "";
+
+  previousNumberDiv.textContent = previousNumber;
+  currentNumberDiv.textContent = currentNumber;
+  nextNumberDiv.textContent = nextNumber;
+}
+
+function startReading() {
+  isReading = true;
+  isPaused = false;
+  startPauseBtn.textContent = "Pause";
+  stopBtn.disabled = false;
+
+  updateUI();
+  readNumber();
+}
+
+function pauseReading() {
+  isPaused = true;
+  startPauseBtn.textContent = "Resume";
+  window.speechSynthesis.cancel(); // Tạm dừng quá trình đọc
+}
+
+function resumeReading() {
+  isPaused = false;
+  startPauseBtn.textContent = "Pause";
+  readNumber();
+}
+
+function stopReading() {
+  isReading = false;
+  isPaused = false;
+  currentIndex = 0;
+  numbers = [];
+  updateUI();
+
+  startPauseBtn.textContent = "Start";
+  stopBtn.disabled = true;
+  window.speechSynthesis.cancel(); // Hủy tất cả đọc hiện tại
+}
+
+function readNumber() {
+  if (isPaused || currentIndex >= numbers.length) {
+    return;
+  }
+
+  const currentNumber = numbers[currentIndex];
+  const utterance = new SpeechSynthesisUtterance(currentNumber.toString());
+  utterance.rate = parseFloat(speedControl.value);
+
+  utterance.onend = () => {
+    currentIndex++;
+    updateUI();
+
+    if (currentIndex < numbers.length) {
+      readNumber(); // Tiếp tục đọc số tiếp theo
+    } else {
+      stopReading(); // Dừng khi đọc xong
+    }
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+// Shared Text-to-Speech Logic
+function speakNumber(number, speed = 1) {
+  return new Promise((resolve) => {
+    const utterance = new SpeechSynthesisUtterance(number.toString());
+    const voices = window.speechSynthesis.getVoices();
+    const vietnameseVoice = voices.find(voice => voice.lang === "vi-VN");
+    if (vietnameseVoice) {
+      utterance.voice = vietnameseVoice;
+    }
+    utterance.lang = "vi-VN";
+    utterance.rate = speed;
+    utterance.onend = () => {
+      randomIsSpeaking = false;
+      resolve();
+    };
+    randomIsSpeaking = true;
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
   </script>
 </body>
 </html>
