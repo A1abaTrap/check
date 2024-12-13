@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <title>Gửi dữ liệu</title>
   </head>
@@ -14,22 +15,23 @@
         submitButton.addEventListener('click', function () {
           const inputValue = inputField.value;
 
+          // Gửi yêu cầu POST đến Google Apps Script Web App
           fetch('https://script.google.com/macros/s/AKfycbxGKvQ4-bPl4Olp_dxV3vvKI_umaPqe0yvy3W645RoTEQqusxqNkwKGSz40ZRFeFsix/exec', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
+            headers: { 
+              'Content-Type': 'application/json' 
             },
             body: JSON.stringify({ inputValue: inputValue })
           })
-            .then(response => response.json())
-            .then(data => {
-              console.log('Dữ liệu đã được gửi thành công:', data);
-              alert('Dữ liệu đã được gửi thành công!');
-            })
-            .catch(error => {
-              console.error('Lỗi:', error);
-              alert('Đã xảy ra lỗi khi gửi dữ liệu.');
-            });
+          .then(response => response.json())  // Chuyển đổi phản hồi JSON
+          .then(data => {
+            console.log('Dữ liệu đã được gửi thành công:', data);
+            alert('Dữ liệu đã được gửi thành công!');  // Hiển thị thông báo thành công
+          })
+          .catch(error => {
+            console.error('Lỗi:', error);
+            alert('Đã xảy ra lỗi khi gửi dữ liệu.');  // Hiển thị thông báo lỗi nếu có
+          });
         });
       });
     </script>
