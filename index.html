@@ -12,22 +12,22 @@
 
   <script>
     document.getElementById('sendButton').addEventListener('click', function () {
-      const inputValue = document.getElementById('inputValue').value;
+const inputValue = document.getElementById("inputField").value;
 
-fetch('https://script.google.com/macros/s/AKfycbxGKvQ4-bPl4Olp_dxV3vvKI_umaPqe0yvy3W645RoTEQqusxqNkwKGSz40ZRFeFsix/exec', { // Thay YOUR_WEB_APP_URL bằng URL của Apps Script
+fetch('https://script.google.com/macros/s/AKfycbxGKvQ4-bPl4Olp_dxV3vvKI_umaPqe0yvy3W645RoTEQqusxqNkwKGSz40ZRFeFsix/exec', {
   method: 'POST',
   headers: { 
     'Content-Type': 'application/json' 
   },
-  body: JSON.stringify({ inputValue: inputValue }) // Gửi dữ liệu JSON
+  body: JSON.stringify({ inputValue: inputValue })
 })
-  .then(response => response.text())
+  .then(response => response.json())
   .then(data => {
-    console.log('Response from server:', data); // Hiển thị phản hồi từ Apps Script
+    console.log('Dữ liệu đã được gửi thành công:', data);
     alert('Dữ liệu đã được gửi thành công!');
   })
   .catch(error => {
-    console.error('Error:', error);
+    console.error('Lỗi:', error);
     alert('Đã xảy ra lỗi khi gửi dữ liệu.');
   });
 
