@@ -1,38 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Send Data to Google Sheets</title>
-</head>
-<body>
-  <h1>Chuyển Dữ Liệu vào Google Sheet</h1>
-  <input type="text" id="inputField" placeholder="Nhập giá trị">
-  <button id="submitButton">Gửi</button>
+<html>
+  <head>
+    <title>Gửi dữ liệu</title>
+  </head>
+  <body>
+    <input type="text" id="inputField" placeholder="Nhập giá trị">
+    <button id="submitButton">Gửi</button>
 
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const submitButton = document.getElementById('submitButton');
+        const inputField = document.getElementById('inputField');
 
-  <script>
-    document.getElementById('sendButton').addEventListener('click', function () {
-const inputValue = document.getElementById("inputField").value;
+        submitButton.addEventListener('click', function () {
+          const inputValue = inputField.value;
 
-fetch('https://script.google.com/macros/s/AKfycbxGKvQ4-bPl4Olp_dxV3vvKI_umaPqe0yvy3W645RoTEQqusxqNkwKGSz40ZRFeFsix/exec', {
-  method: 'POST',
-  headers: { 
-    'Content-Type': 'application/json' 
-  },
-  body: JSON.stringify({ inputValue: inputValue })
-})
-  .then(response => response.json())
-  .then(data => {
-    console.log('Dữ liệu đã được gửi thành công:', data);
-    alert('Dữ liệu đã được gửi thành công!');
-  })
-  .catch(error => {
-    console.error('Lỗi:', error);
-    alert('Đã xảy ra lỗi khi gửi dữ liệu.');
-  });
-
-    });
-  </script>
-</body>
+          fetch('YOUR_WEB_APP_URL', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ inputValue: inputValue })
+          })
+            .then(response => response.json())
+            .then(data => {
+              console.log('Dữ liệu đã được gửi thành công:', data);
+              alert('Dữ liệu đã được gửi thành công!');
+            })
+            .catch(error => {
+              console.error('Lỗi:', error);
+              alert('Đã xảy ra lỗi khi gửi dữ liệu.');
+            });
+        });
+      });
+    </script>
+  </body>
 </html>
