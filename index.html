@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Data to Google Sheets</title>
+</head>
+<body>
+  <h1>Chuyển Dữ Liệu vào Google Sheet</h1>
+  <input type="text" id="inputValue" placeholder="Nhập dữ liệu">
+  <button id="sendButton">Gửi</button>
+
+  <script>
+    document.getElementById('sendButton').addEventListener('click', function () {
+      const inputValue = document.getElementById('inputValue').value;
+
+      fetch('https://script.google.com/macros/s/AKfycbxGKvQ4-bPl4Olp_dxV3vvKI_umaPqe0yvy3W645RoTEQqusxqNkwKGSz40ZRFeFsix/exec', { // Thay YOUR_WEB_APP_URL bằng URL của Apps Script
+  method: 'POST',
+  headers: { 
+    'Content-Type': 'application/json' 
+  },
+  body: JSON.stringify({ inputValue: inputValue }) // Gửi dữ liệu JSON
+})
+  .then(response => response.text())
+  .then(data => {
+    console.log('Response from server:', data); // Hiển thị phản hồi từ Apps Script
+    alert('Dữ liệu đã được gửi thành công!');
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Đã xảy ra lỗi khi gửi dữ liệu.');
+  });
+
+  </script>
+</body>
+</html>
